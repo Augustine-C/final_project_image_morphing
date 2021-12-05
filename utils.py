@@ -1,16 +1,10 @@
 import cv2
-import glob
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.tri as tri
-import matplotlib.path as mpltpath
 
 from PIL import Image
-from scipy.spatial import Delaunay
-from scipy.spatial import voronoi_plot_2d, Voronoi
 from skimage import draw
 import os
-from multiprocessing import Pool, TimeoutError
+from multiprocessing import Pool
 
 
 
