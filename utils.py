@@ -29,7 +29,7 @@ def get_frame_at_t(ori_tris, new_tris, t, ori_img, new_img, positions):
 def generate_imgs(ori_tris, new_tris, t, ori_img,new_img,positions,frame_num, group):
     frame = get_frame_at_t(ori_tris, new_tris, t, ori_img, new_img, positions)
     os.makedirs('./images/outputs/{}/'.format(group), exist_ok = True)
-    cv2.imwrite('./images/outputs/{}/frame_{}.png'.format(group, str(frame_num)), frame)
+    cv2.imwrite('./images/outputs/{}/frame_{}.jpg'.format(group, str(frame_num)), frame)
 
 def poly2mask(vertex_row_coords, vertex_col_coords, shape):
     fill_row_coords, fill_col_coords = draw.polygon(vertex_row_coords, vertex_col_coords, shape)
