@@ -82,3 +82,36 @@ def imageFolder2mpeg(input_path, output_path='./output_video.mpeg', fps=30.0):
         frame_idx += 1
 
     video_writer.release()
+
+def prompt_eye_selection(image):
+    fig = plt.figure()
+    plt.imshow(image, cmap='gray')
+    fig.set_label('Click on ten points for alignment')
+    plt.axis('off')
+    xs = []
+    ys = []
+    clicked = np.zeros((8, 2), dtype=np.float32)
+
+    # Define a callback function that will update the textarea
+    def onmousedown(event):
+        x = event.xdata
+        y = event.ydata
+        xs.append(x)
+        ys.append(y)
+
+        plt.plot(xs, ys, 'r-+')
+
+    def onmouseup(event):
+        if(len(xs) >= 8):
+            plt.close(fig)
+
+    def onclose(event):
+        clicked[:, 0] = xs
+        clicked[:, 1] = ys
+    # Create an hard reference to the callback not to be cleared by the garbage
+    # collector
+    fig.canvas.mpl_connect('button_press_event', onmousedown)
+    fig.canvas.mpl_connect('button_release_event', onmouseup)
+    fig.canvas.mpl_connect('close_event', onclose)
+
+    return clicked
