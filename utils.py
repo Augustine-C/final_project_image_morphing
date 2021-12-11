@@ -15,8 +15,8 @@ def get_frame_at_t(ori_tris, new_tris, t, ori_img, new_img, positions):
         ori_tri = ori_tris[i]
         new_tri = new_tris[i]
         ave_tri = ori_tri * (1-t) + t * new_tri
-        ori_transform = cv2.getAffineTransform(np.float32(ave_tri), np.float32(ori_tri))
-        new_transform = cv2.getAffineTransform(np.float32(ave_tri), np.float32(new_tri))
+        ori_transform = get_transformation(np.float32(ave_tri), np.float32(ori_tri))
+        new_transform = get_transformation(np.float32(ave_tri), np.float32(new_tri))
         ave_points = positions[get_mask(ave_tri, ori_img)]
         
         for point in ave_points:
@@ -45,6 +45,14 @@ def get_mask(triangle, img):
 #     plt.imshow(np.uint8(mask), cmap='gray')
     return mask
 
+def get_transformation(t1,t2):
+    A = np.zeros([3,3])
+    for i in range(3):
+        A[i,0:2] = t1[i]
+        A[i,2] = 1
+    x = t2
+    result = np.linalg.lstsq(A,x)[0]
+    return result.transpose()
 
 def imageFolder2mpeg(input_path, output_path='./output_video.mpeg', fps=30.0):
     '''
