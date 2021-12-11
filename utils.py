@@ -123,3 +123,92 @@ def prompt_eye_selection(image):
     fig.canvas.mpl_connect('close_event', onclose)
 
     return clicked
+
+def get_perpendicular_2d(a) :
+    b = np.zeros(a.shape)
+    b[0] = -1 * a[1]
+    b[1] = a[0]
+    return b
+
+
+def generate_frames_feature_based(frame_idx, num_frames, img, img2, p, q, p_prime, q_prime):
+    output_subdir = 'feature_based_3'
+    os.makedirs('./images/outputs/{}/'.format(output_subdir), exist_ok = True)
+    # assuming the two image is of the same size
+    img_frame = np.zeros(img.shape)
+    # linear interpolation of line segments
+    delta_p = (p_prime-p) / (num_frames+1)
+    delta_q = (q_prime-q) / (num_frames+1)
+
+    p_is = p + delta_p * (frame_idx + 1)
+    q_is = q + delta_q * (frame_idx + 1)
+    # iterate through each pixel locations
+    for row in range(img.shape[0]):
+        # if row % 100 == 0:
+        #     print('100 rows')
+        for col in range(img.shape[1]):
+            # X is the pixel index in (x, y)
+            x = np.array([col, row])
+            d_sum_from_src = np.zeros((1, 2), dtype=np.float32)
+            d_sum_from_target = np.zeros((1, 2), dtype=np.float32)
+            weight_sum = 0
+            # iterate each line segments p_i->q_i
+            for line_idx in range(p_is.shape[0]):
+                p_i = p_is[line_idx]
+                q_i = q_is[line_idx]
+                p_src_i = p[line_idx]
+                p_prime_i = p_prime[line_idx]
+                q_src_i = q[line_idx]
+                q_prime_i = q_prime[line_idx]
+                # obtain u, v, X' based on interpolated line segments
+                lambda_i = np.dot(x - p_i, q_i - p_i)/ np.linalg.norm(q_i - p_i)
+                u = lambda_i / np.linalg.norm(q_i - p_i)
+                v = np.dot(x-p_i, get_perpendicular_2d(q_i - p_i)) / np.linalg.norm(q_i - p_i)
+                x_prime_from_src = p_src_i + np.dot(u, q_src_i - p_src_i) + \
+                          (np.dot(v, get_perpendicular_2d(q_src_i- p_src_i)) \
+                                                                    /np.linalg.norm(q_src_i - p_src_i))
+                x_prime_from_target = p_prime_i + np.dot(u, q_prime_i - p_prime_i) + \
+                          (np.dot(v, get_perpendicular_2d(q_prime_i- p_prime_i)) \
+                                                                /np.linalg.norm(q_prime_i - p_prime_i))
+                # get the shortest distance from the pixel to the directed line segments
+                # need to depend on value of u
+                if u < 0:
+                    dist = np.linalg.norm(p_i-x)
+                elif u > 1:
+                    dist = np.linalg.norm(q_i-x)
+                else:
+                    dist = abs(v)
+                # weight that each line have. a, b, and p are parameters
+                a, b, p_influence = 0.3, 1.3, 0.1
+                line_length = np.linalg.norm(q_i - p_i)
+                weight = ((line_length**p_influence)/(a+dist))**b
+                d_sum_from_src += weight * (x_prime_from_src - x)
+                d_sum_from_target += weight * (x_prime_from_target - x)
+                weight_sum += weight
+            # recompute locations with the effect of all lines
+            x_prime_from_src = x + d_sum_from_src / weight_sum
+            x_prime_from_target = x + d_sum_from_target / weight_sum
+            x_prime_src_x, x_prime_src_y = int(x_prime_from_src[0,0]), int(x_prime_from_src[0,1])
+            x_prime_target_x, x_prime_target_y = int(x_prime_from_target[0,0]), int(x_prime_from_target[0,1])
+            # todo: handle non-integer index
+            # todo: handle out-of-boundary index
+
+            # source image
+            new_pixel_from_source = img[col, row]
+            if 0 <= x_prime_src_x < img.shape[1] and 0 <= x_prime_src_y < img.shape[0]:
+                # index within image range, get the corresponding pixel value
+                new_pixel_from_source = img[x_prime_src_y, x_prime_src_x]
+            # dest image
+            new_pixel_from_dest = img[col, row]
+            if 0 <= x_prime_target_x < img.shape[1] and 0 <= x_prime_target_y < img.shape[0]:
+                # index within image range
+                new_pixel_from_dest = img2[x_prime_target_y, x_prime_target_x]
+
+            #print(new_pixel_from_dest)
+            # print(x_prime_src_x)
+            # print(x_prime_target_x)
+            # cross-dissolve the pixels
+            t = frame_idx / num_frames
+            img_frame[row, col] = (1-t) * new_pixel_from_source + t * new_pixel_from_dest
+    print('writing to files')
+    cv2.imwrite('./images/outputs/{}/frame_{}.jpg'.format(output_subdir, str(frame_idx)), img_frame)
