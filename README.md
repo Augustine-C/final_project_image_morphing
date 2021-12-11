@@ -1,6 +1,6 @@
 # final_project
 
-This project is contributed by [Yifan Cui](yifanc24@illinois.edu), [Zhenxi Li](zli89@illinois.edu) and [Anfeng Peng](anfengp2@illinois.edu).
+This project is contributed by [Yifan Cui](mailto:yifanc24@illinois.edu), [Zhenxi Li](mailto:zli89@illinois.edu) and [Anfeng Peng](mailto:anfengp2@illinois.edu).
 
 In our final project, we explore several approaches for image morphing. We are initially motivated by the seamless morphing as seen in the “age transition” video played during the lecture. With some more research, we also see it has a wide range of applications in animation, film, font design, and medical imaging. We hope to gain a deeper understanding of the topic by implementing some image morphing techniques outlined in the lecture hands-on, including Cross-Dissolve, Align then cross-dissolve, and local warp, then cross-dissolve. Moreover, we think that implementing image morphing can fit well given the timeframe and scope of the final project. 
 
