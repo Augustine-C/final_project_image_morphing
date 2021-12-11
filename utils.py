@@ -199,7 +199,7 @@ def generate_frames_feature_based(frame_idx, num_frames, img, img2, p, q, p_prim
                 # index within image range, get the corresponding pixel value
                 new_pixel_from_source = img[x_prime_src_y, x_prime_src_x]
             # dest image
-            new_pixel_from_dest = img[col, row]
+            new_pixel_from_dest = img2[col, row]
             if 0 <= x_prime_target_x < img.shape[1] and 0 <= x_prime_target_y < img.shape[0]:
                 # index within image range
                 new_pixel_from_dest = img2[x_prime_target_y, x_prime_target_x]
